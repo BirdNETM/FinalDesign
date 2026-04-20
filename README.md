@@ -1,0 +1,1 @@
+我的毕设，前端用vue3,后端用springboot和python,模型用的PaddleOCR和sentence-BERT的miniLM
