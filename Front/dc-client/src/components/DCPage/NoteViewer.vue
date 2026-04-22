@@ -5,6 +5,7 @@
     </div>
     
     <div v-else class="editor-wrapper">
+      <!-- 笔记编辑区 -->
       <textarea 
         v-model="noteContent" 
         placeholder="在此输入笔记内容..."
@@ -21,6 +22,19 @@
           {{ saving ? '正在保存...' : '保存笔记' }}
         </button>
       </div>
+
+      <!-- AI 总结区 -->
+      <div class="ai-summary-section">
+        <div class="ai-header">
+          <span>📝 AI 总结</span>
+          <span v-if="aiSummaryLoading" class="loading-text">加载中...</span>
+        </div>
+        <div class="ai-content">
+          <div v-if="aiSummaryLoading" class="ai-loading">正在获取总结...</div>
+          <div v-else-if="aiSummary" class="ai-text">{{ aiSummary }}</div>
+          <div v-else class="ai-empty">暂无 AI 总结</div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -33,24 +47,29 @@ export default {
   data() {
     return {
       noteContent: '',
-      loading: false,
+      aiSummary: '',       // AI 总结内容
+      loading: false,      // 笔记加载状态
+      aiSummaryLoading: false, // AI 总结加载状态
       saving: false
     }
   },
   watch: {
     'file.id': {
       handler(newId) {
-        if (newId) this.fetchNote(newId);
+        if (newId) {
+          this.fetchNote(newId);       // 加载笔记
+          this.fetchAiSummary(newId); // 同时加载 AI 总结
+        }
       },
       immediate: true
     }
   },
   methods: {
+    // 获取笔记
     async fetchNote(docId) {
       this.loading = true;
       try {
         const res = await axios.get(`http://localhost:8080/docs/getNoteByDocId/${docId}`);
-        // 注意：如果后端返回的是 String，直接赋值即可
         this.noteContent = res.data || '';
       } catch (e) {
         console.error("加载笔记失败", e);
@@ -59,6 +78,24 @@ export default {
         this.loading = false;
       }
     },
+
+    // 获取 AI 总结
+    async fetchAiSummary(docId) {
+      this.aiSummaryLoading = true;
+      this.aiSummary = '';
+      try {
+        const res = await axios.get(`http://localhost:8080/docs/getAi_summary/${docId}`);
+        // 根据后端返回格式调整，默认取 res.data
+        this.aiSummary = res.data || '';
+      } catch (e) {
+        console.error("加载 AI 总结失败", e);
+        this.aiSummary = '获取总结失败';
+      } finally {
+        this.aiSummaryLoading = false;
+      }
+    },
+
+    // 保存笔记
     async saveNote() {
       if (!this.file || !this.file.id) return;
       
@@ -148,5 +185,56 @@ export default {
   text-align: center;
   padding-top: 50px;
   color: #999;
+}
+
+/* ========== AI 总结区样式 ========== */
+.ai-summary-section {
+  border-top: 2px solid #f0f0f0;
+  padding: 12px 15px;
+  background-color: #fdfefe;
+  flex-shrink: 0;
+}
+
+.ai-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.loading-text {
+  font-size: 12px;
+  color: #999;
+  font-weight: normal;
+}
+
+.ai-content {
+  min-height: 60px;
+  padding: 10px;
+  background: #f7f9fa;
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #444;
+}
+
+.ai-loading {
+  color: #999;
+  text-align: center;
+  padding: 10px 0;
+}
+
+.ai-empty {
+  color: #bbb;
+  text-align: center;
+  padding: 10px 0;
+}
+
+.ai-text {
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 </style>

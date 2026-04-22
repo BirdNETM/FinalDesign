@@ -18,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -121,7 +122,13 @@ public class DocManageServiceImpl implements DocManageService {
 
     @Override
     public List<Doc> searchDoc(String query) {
-        return FileUtils.callPythonBertQuery(query);
+        List<Integer> docIdList = FileUtils.callPythonBertQuery(query);
+        List<Doc> docList = new ArrayList<>();
+        for (Integer doc_id : docIdList) {
+            Doc doc = docMapper.getDocById(doc_id);
+            docList.add(doc);
+        }
+        return docList;
     }
 
     @Override

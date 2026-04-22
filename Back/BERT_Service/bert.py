@@ -172,7 +172,7 @@ def bert_embedding_tag(tag_id):
         print(f"Embedding error: {e}")
     # 注意：根据你的框架习惯，决定是否在这里 close cursor
 
-def bert_set_tag(doc_id, top_k=2):
+def bert_set_tag(doc_id, top_k=1):
     cursor = get_cursor()
     try:
         # 1. 获取文档向量

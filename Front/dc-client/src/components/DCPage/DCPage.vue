@@ -30,9 +30,62 @@
           <button class="add-tag-btn" @click="showAddTagModal = true">+ 添加Tag</button>
         </div>
         <div class="panel-body">
-          <FileTree 
+          <div class="search-section">
+            <div class="search-box">
+              <input
+                v-model.trim="searchQuery"
+                class="search-input"
+                type="text"
+                placeholder="Search documents"
+                @keyup.enter="searchDocs"
+              />
+              <button
+                class="search-btn"
+                :disabled="searchLoading"
+                @click="searchDocs"
+              >
+                {{ searchLoading ? 'Searching...' : 'Search' }}
+              </button>
+            </div>
+            <div v-if="isSearchMode" class="search-toolbar">
+              <span class="search-summary">
+                {{ searchLoading ? 'Searching...' : `${searchResults.length} results` }}
+              </span>
+              <button class="clear-search-btn" @click="clearSearch">Clear</button>
+            </div>
+            <div v-if="searchError" class="search-error">{{ searchError }}</div>
+          </div>
+
+          <div v-if="isSearchMode" class="search-results">
+            <div v-if="searchLoading" class="search-empty">Loading results...</div>
+            <div v-else-if="searchResults.length === 0" class="search-empty">No documents found.</div>
+            <ul v-else class="search-result-list">
+              <li
+                v-for="doc in searchResults"
+                :key="doc.doc_id"
+                class="search-result-item"
+                @click="handleSearchResultClick(doc)"
+              >
+                <div class="search-result-title">
+                  {{ doc.title || doc.doc_name || 'Untitled document' }}
+                </div>
+                <div v-if="doc.tag_name || doc.path" class="search-result-meta">
+                  {{ doc.tag_name || doc.path }}
+                </div>
+                <div
+                  v-if="doc.summary || doc.content || doc.doc_content"
+                  class="search-result-desc"
+                >
+                  {{ doc.summary || doc.content || doc.doc_content }}
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          <FileTree
+            v-else
             ref="fileTreeRef"
-            @file-select="handleFileSelect" 
+            @file-select="handleFileSelect"
           />
         </div>
       </section>
@@ -117,6 +170,11 @@ export default {
     return {
       currentFile: null,
       uploadLoading: false,
+      searchQuery: '',
+      searchLoading: false,
+      searchResults: [],
+      searchError: '',
+      isSearchMode: false,
       showAddTagModal: false,
       tagLoading: false,
       newTag: {
@@ -126,6 +184,54 @@ export default {
     }
   },
   methods: {
+    buildFileNode(doc) {
+      return {
+        id: doc.doc_id,
+        name: doc.title || doc.doc_name || 'Untitled document',
+        type: 'file',
+        path: doc.path
+      };
+    },
+
+    async searchDocs() {
+      const query = this.searchQuery.trim();
+
+      if (!query) {
+        this.clearSearch();
+        return;
+      }
+
+      try {
+        this.searchLoading = true;
+        this.searchError = '';
+        this.isSearchMode = true;
+
+        const response = await axios.get(
+          `http://localhost:8080/docs/serachDoc/${encodeURIComponent(query)}`
+        );
+
+        this.searchResults = Array.isArray(response.data) ? response.data : [];
+      } catch (error) {
+        console.error('Search docs failed:', error);
+        this.searchResults = [];
+        this.searchError = 'Search failed. Please check the backend service.';
+      } finally {
+        this.searchLoading = false;
+      }
+    },
+
+    clearSearch() {
+      this.searchQuery = '';
+      this.searchLoading = false;
+      this.searchResults = [];
+      this.searchError = '';
+      this.isSearchMode = false;
+    },
+
+    handleSearchResultClick(doc) {
+      this.handleFileSelect(this.buildFileNode(doc));
+    },
+
     closeAddTagModal() {
       this.showAddTagModal = false;
       this.newTag = { tag_name: '', tag_content: '' };
@@ -382,6 +488,121 @@ export default {
   flex: 1;
   overflow: auto;
   padding: 10px;
+}
+.search-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.search-box {
+  display: flex;
+  gap: 8px;
+}
+.search-input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  font-size: 13px;
+}
+.search-input:focus {
+  outline: none;
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.12);
+}
+.search-btn,
+.clear-search-btn {
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.search-btn {
+  padding: 8px 14px;
+  background: #1890ff;
+  color: #fff;
+  white-space: nowrap;
+}
+.search-btn:disabled {
+  background: #bfbfbf;
+  cursor: not-allowed;
+}
+.clear-search-btn {
+  padding: 4px 10px;
+  background: #f5f5f5;
+  color: #666;
+}
+.clear-search-btn:hover {
+  background: #e8e8e8;
+}
+.search-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: #666;
+}
+.search-error {
+  padding: 8px 10px;
+  border-radius: 4px;
+  background: #fff2f0;
+  color: #cf1322;
+  font-size: 12px;
+}
+.search-results {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.search-result-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.search-result-item {
+  padding: 10px;
+  border: 1px solid #f0f0f0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.search-result-item:hover {
+  border-color: #91d5ff;
+  background: #f6ffed;
+}
+.search-result-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #262626;
+  line-height: 1.5;
+}
+.search-result-meta {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #8c8c8c;
+  word-break: break-all;
+}
+.search-result-desc {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #595959;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+.search-empty {
+  padding: 16px 0;
+  text-align: center;
+  color: #999;
+  font-size: 13px;
 }
 .folder-viewer { flex: 0 0 240px; }
 .doc-viewer    { flex: 1; min-width: 400px; }

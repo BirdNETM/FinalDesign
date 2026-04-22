@@ -4,7 +4,7 @@ import com.yukibun.yukidoc.Entity.Doc;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
-
+import com.yukibun.yukidoc.Service.DocManageService;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -50,7 +50,7 @@ public class FileUtils {
         }
     }
 
-    public static List<Doc> callPythonBertQuery(String query) {
+    public static List<Integer> callPythonBertQuery(String query) {
         try {
             String url = PYTHON_BERT_URL + "/bert_query?query=" + query;
 
@@ -65,22 +65,17 @@ public class FileUtils {
             }
 
             // 3. 遍历解析：每一项都是 [int, String, double] 数组！
-            List<Doc> docList = new ArrayList<>();
+            List<Integer> docIdList = new ArrayList<>();
             for (Object item : dataList) {
                 // 把每一项转成 List（因为 Python 返回的是列表）
                 List<Object> info = (List<Object>) item;
+                int dic_id = ((Number) info.get(0)).intValue();
 
-                Doc doc = new Doc();
-                // 顺序：[doc_id, text, score]
-                doc.setDoc_id(((Number) info.get(0)).intValue());    // 第0位：int
-                doc.setDoc_content((String) info.get(1));            // 第1位：字符串
-                doc.setDoc_match_score(((Number) info.get(2)).doubleValue()); // 第2位：分数
-
-                docList.add(doc);
+                docIdList.add(dic_id);
             }
 
-            System.out.println("✅ BERT 调用成功，返回 " + docList.size() + " 条文档");
-            return docList;
+            System.out.println("✅ BERT 调用成功，返回 " + docIdList.size() + " 条文档");
+            return docIdList;
 
         } catch (Exception e) {
             System.err.println("❌ BERT 调用失败：");
