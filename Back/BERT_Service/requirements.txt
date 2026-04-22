@@ -1,0 +1,22 @@
+# PyTorch 最新稳定版 (CPU)
+torch>=2.6.0
+torchvision>=0.15.0
+torchaudio>=2.6.0
+
+# Transformers & Sentence-Transformers
+transformers>=4.34.0
+sentence-transformers>=2.2.2
+
+# FastAPI server
+fastapi>=0.111.0
+uvicorn[standard]>=0.23.0
+
+# 通用工具
+numpy>=1.26.0
+scipy>=1.11.0
+pandas>=2.1.0
+tqdm>=4.66.0
+typing-extensions>=4.9.0
+
+# 可选：如果使用 GPU，加上对应的 torch CUDA 版本
+# pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
