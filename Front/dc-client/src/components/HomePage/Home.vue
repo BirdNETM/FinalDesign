@@ -53,9 +53,9 @@ const go = (path) => {
     router.push(path)
   } else {
     // 暂时提示功能开发中
-    ElMessage.info(`跳转到 ${path} (功能开发中...)`)
+    //ElMessage.info(`跳转到 ${path} (功能开发中...)`)
     // 如果您后续创建了对应页面，可以取消注释下面这行
-    // router.push(path)
+    router.push(path)
   }
 }
 </script>

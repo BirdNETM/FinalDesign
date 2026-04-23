@@ -27,14 +27,17 @@ public class FileUtils {
     // ========================
     // 调用 Python OCR
     // ========================
-    public static void callPythonOCR(int doc_id) {
+    public static String callPythonOCR(int doc_id) {
         try {
             String url = PYTHON_OCR_URL + "/ocr?doc_id=" + doc_id;
             Map<String, Object> result = REST_TEMPLATE.postForObject(url, null, Map.class);
+            String doc_content = (String) result.get("data");
             System.out.println("✅ OCR 调用成功：" + result);
+            return doc_content;
         } catch (Exception e) {
             System.err.println("❌ OCR 调用失败：" + e.getMessage());
         }
+        return null;
     }
 
     // ========================

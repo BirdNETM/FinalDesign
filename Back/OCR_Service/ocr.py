@@ -7,7 +7,12 @@ os.environ["FLAGS_new_executor"] = "0"
 
 
 from fastapi import FastAPI, Query, HTTPException, Body
-
+import docx
+# 读取doc文件需要额外库（pip install pywin32，仅Windows可用）
+try:
+    import win32com.client
+except ImportError:
+    win32com = None
 from pathlib import Path
 import numpy as np
 from paddleocr import PaddleOCR
@@ -35,7 +40,6 @@ def ocr_image(img: Image.Image):
             texts.append(box[1][0])
     return texts
 
-
 def ocr_file(doc_id):
     cursor = get_cursor()
     sql = "select doc_url from docs where doc_id = %s"
@@ -52,8 +56,42 @@ def ocr_file(doc_id):
 
     suffix = path.suffix.lower().lstrip(".")
     texts = []
+    if suffix in ["doc", "docx", "txt"]:
+        try:
+            # 读取txt文件
+            if suffix == "txt":
+                # 兼容常见编码：utf-8、gbk（Windows中文文本）
+                encodings = ["utf-8", "gbk", "gb2312"]
+                for enc in encodings:
+                    try:
+                        with open(path, "r", encoding=enc) as f:
+                            texts = [line.strip() for line in f if line.strip()]
+                        break
+                    except UnicodeDecodeError:
+                        continue
 
-    if suffix in ["jpg", "jpeg", "png"]:
+            # 读取docx文件
+            elif suffix == "docx":
+                doc = docx.Document(path)
+                # 提取所有段落文本
+                texts = [para.text.strip() for para in doc.paragraphs if para.text.strip()]
+
+            # 读取doc文件（仅Windows系统可用）
+            elif suffix == "doc":
+                if not win32com:
+                    raise HTTPException(status_code=500, detail="请安装pywin32库：pip install pywin32")
+                # 调用Word程序读取doc
+                word = win32com.client.Dispatch("Word.Application")
+                word.Visible = False
+                doc = word.Documents.Open(str(path))
+                texts = [doc.Content.Text.strip()]
+                doc.Close()
+                word.Quit()
+
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"读取文件失败: {str(e)}")
+
+    elif suffix in ["jpg", "jpeg", "png"]:
         try:
             img = Image.open(path)
             texts += ocr_image(img)
@@ -95,11 +133,4 @@ def ocr_file(doc_id):
                         pass
     else:
         raise HTTPException(status_code=400, detail=f"不支持的文件格式: {suffix}")
-    print("识别结果为：\n" + "\n".join(texts))
-    sql = "INSERT INTO vector(doc_id, text) VALUES(%s,%s)"
-    cursor.execute(sql, (
-        doc_id,
-        "\n".join(texts)
-    ))
-    commit()
-    return {"text": "\n".join(texts)}
+    return "\n".join(texts)

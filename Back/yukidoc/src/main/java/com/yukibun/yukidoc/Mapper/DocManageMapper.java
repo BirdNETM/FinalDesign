@@ -51,4 +51,8 @@ public interface DocManageMapper {
 
     @Update("UPDATE vector SET text = #{note} WHERE doc_id = #{docId}")
     void updateContentByDocId(@Param("docId") Integer docId, @Param("note") String note);
+
+    @Insert("INSERT INTO vector(doc_id) values (#{newDocId})")
+    void createDocVector(int newDocId);
+
 }

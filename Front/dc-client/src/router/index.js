@@ -3,7 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 // 导入资料管理组件
 import DCPage from '../components/DCPage/DCPage.vue'
 import Home from '../components/HomePage/Home.vue' // 导入 Home 组件
-
+import Community from '../components/CommunityPage/Posts.vue'
 // 定义路由规则
 const routes = [
     {
@@ -15,6 +15,11 @@ const routes = [
     path: '/doccontrol', // 资料管理页面的路由路径
     name: 'DCPage', // 路由名称（可选，用于编程式导航）
     component: DCPage // 对应资料管理组件
+  },
+  {
+    path: '/community', // 资料管理页面的路由路径
+    name: 'Community', // 路由名称（可选，用于编程式导航）
+    component: Community // 对应资料管理组件
   }
 ]
 

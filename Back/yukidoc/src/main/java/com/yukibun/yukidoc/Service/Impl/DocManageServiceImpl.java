@@ -82,7 +82,11 @@ public class DocManageServiceImpl implements DocManageService {
 
             docMapper.createDoc(doc);
             int newDocId = doc.getDoc_id();
-            FileUtils.callPythonOCR(newDocId);
+            docMapper.createDocVector(newDocId);
+            String doc_content = FileUtils.callPythonOCR(newDocId);
+            doc.setDoc_content(doc_content);
+            docMapper.updateContentByDocId(newDocId, doc_content);
+            System.out.println("doc content is " + docMapper.getDocById(newDocId).getDoc_content());
             FileUtils.callPythonBertStore(newDocId);
             FileUtils.callPythonAISummary(newDocId);
             TagUtils.callPythonSetDocTag(newDocId);

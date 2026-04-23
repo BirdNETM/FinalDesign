@@ -84,6 +84,7 @@ def bert_store_service(doc_id):
     ))
     result = cursor.fetchone()
     if not result or not result[0]:
+        print("what's going on?")
         raise ValueError(f"doc_id={doc_id} 未找到文本内容")
     text = result[0]
     commit()
