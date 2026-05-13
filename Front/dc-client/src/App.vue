@@ -1,18 +1,26 @@
 <template>
-  <div class="app-container">
-    <!-- 路由出口：匹配的路由组件会渲染在这里 -->
+  <div class="app-container" :class="{ 'app-container--full': isAuthRoute }">
     <router-view />
   </div>
 </template>
 
 <script setup>
-// 无需额外导入组件，路由会自动渲染
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
+const isAuthRoute = computed(() => route.name === 'Login' || route.name === 'Profile')
 </script>
 
 <style scoped>
 .app-container {
   max-width: 1200px;
   margin: 0 auto;
+}
+
+.app-container--full {
+  max-width: none;
+  margin: 0;
 }
 .nav {
   margin-bottom: 30px;

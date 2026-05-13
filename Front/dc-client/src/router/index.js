@@ -1,32 +1,59 @@
 // src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
-// 导入资料管理组件
 import DCPage from '../components/DCPage/DCPage.vue'
-import Home from '../components/HomePage/Home.vue' // 导入 Home 组件
+import Home from '../components/HomePage/Home.vue'
 import Community from '../components/CommunityPage/Posts.vue'
-// 定义路由规则
+import AuthPage from '../components/AuthPage/AuthPage.vue'
+import ProfilePage from '../components/ProfilePage/ProfilePage.vue'
+import { isLoggedIn } from '../auth/session.js'
+
 const routes = [
-    {
-    path: '/',        // 主页路径
+  {
+    path: '/login',
+    name: 'Login',
+    component: AuthPage,
+    meta: { public: true }
+  },
+  {
+    path: '/',
     name: 'Home',
     component: Home
   },
   {
-    path: '/doccontrol', // 资料管理页面的路由路径
-    name: 'DCPage', // 路由名称（可选，用于编程式导航）
-    component: DCPage // 对应资料管理组件
+    path: '/doccontrol',
+    name: 'DCPage',
+    component: DCPage
   },
   {
-    path: '/community', // 资料管理页面的路由路径
-    name: 'Community', // 路由名称（可选，用于编程式导航）
-    component: Community // 对应资料管理组件
+    path: '/community',
+    name: 'Community',
+    component: Community
+  },
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: ProfilePage
   }
 ]
 
-// 创建路由实例
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL), // 基于 HTML5 History 模式
-  routes // 注入路由规则
+  history: createWebHistory(import.meta.env.BASE_URL),
+  routes
+})
+
+router.beforeEach((to) => {
+  if (to.meta.public) {
+    if (to.name === 'Login' && isLoggedIn()) {
+      return typeof to.query.redirect === 'string' && to.query.redirect.startsWith('/')
+        ? to.query.redirect
+        : '/'
+    }
+    return true
+  }
+  if (!isLoggedIn()) {
+    return { name: 'Login', query: { redirect: to.fullPath } }
+  }
+  return true
 })
 
 export default router
