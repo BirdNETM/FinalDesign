@@ -30,4 +30,6 @@ public interface DocManageService {
     void insertTag(Tag tag);
 
     void saveNote(Integer docId, String note);
+
+    String reSetAI_summary(Integer docId);
 }

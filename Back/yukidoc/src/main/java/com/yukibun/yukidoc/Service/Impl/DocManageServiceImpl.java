@@ -75,9 +75,7 @@ public class DocManageServiceImpl implements DocManageService {
             // 5️⃣ 存数据库
             Doc doc = new Doc();
             doc.setDoc_name(originalName);  // 保存原始文件名
-            doc.setIs_folder(0);
             doc.setOwner_id(1);     // 用户部分
-            doc.setFather_id(0);   // 分配端
             doc.setDoc_url(String.valueOf(filePath));
 
             docMapper.createDoc(doc);
@@ -88,7 +86,7 @@ public class DocManageServiceImpl implements DocManageService {
             docMapper.updateContentByDocId(newDocId, doc_content);
             System.out.println("doc content is " + docMapper.getDocById(newDocId).getDoc_content());
             FileUtils.callPythonBertStore(newDocId);
-            FileUtils.callPythonAISummary(newDocId);
+            //FileUtils.callPythonAISummary(newDocId);
             TagUtils.callPythonSetDocTag(newDocId);
         } catch (IOException e) {
             throw new RuntimeException("文件保存失败", e);
@@ -201,6 +199,13 @@ public class DocManageServiceImpl implements DocManageService {
 
             this.createDoc(mockFile);
         }
+    }
+
+    @Override
+    public String reSetAI_summary(Integer docId) {
+        FileUtils.callPythonAISummary(docId);
+
+        return getAi_summary(docId);
     }
 
 

@@ -6,7 +6,7 @@ from db import connect_db, close_db
 
 # 业务
 from bert import *
-
+import uvicorn
 
 # ======================
 # 生命周期管理
@@ -81,3 +81,10 @@ def api_bert_query(doc_id: int):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"set tag失败：{str(e)}")
+if __name__ == "__main__":
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",  # 允许局域网访问
+        port=8001,      # 固定端口 8000
+        reload=True     # 开发模式：代码修改自动重启
+    )

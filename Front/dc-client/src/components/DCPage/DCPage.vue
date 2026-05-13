@@ -194,31 +194,37 @@ export default {
     },
 
     async searchDocs() {
-      const query = this.searchQuery.trim();
+  const query = this.searchQuery.trim();
 
-      if (!query) {
-        this.clearSearch();
-        return;
+  if (!query) {
+    this.clearSearch();
+    return;
+  }
+
+  try {
+    this.searchLoading = true;
+    this.searchError = '';
+    this.isSearchMode = true;
+
+    // ✅ 改成配合 @RequestParam 的写法
+    const response = await axios.get(
+      `http://localhost:8080/docs/searchDoc`,
+      {
+        params: {
+          query: query  // axios 会自动处理中文编码
+        }
       }
+    );
 
-      try {
-        this.searchLoading = true;
-        this.searchError = '';
-        this.isSearchMode = true;
-
-        const response = await axios.get(
-          `http://localhost:8080/docs/serachDoc/${encodeURIComponent(query)}`
-        );
-
-        this.searchResults = Array.isArray(response.data) ? response.data : [];
-      } catch (error) {
-        console.error('Search docs failed:', error);
-        this.searchResults = [];
-        this.searchError = 'Search failed. Please check the backend service.';
-      } finally {
-        this.searchLoading = false;
-      }
-    },
+    this.searchResults = Array.isArray(response.data) ? response.data : [];
+  } catch (error) {
+    console.error('Search docs failed:', error);
+    this.searchResults = [];
+    this.searchError = 'Search failed. Please check the backend service.';
+  } finally {
+    this.searchLoading = false;
+  }
+},
 
     clearSearch() {
       this.searchQuery = '';

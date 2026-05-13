@@ -7,7 +7,7 @@ from db import connect_db, close_db
 # 业务
 from ocr import ocr_file
 from ai_summary import ai_summary_service
-
+import uvicorn
 
 # ======================
 # 生命周期管理
@@ -58,3 +58,10 @@ def api_ai_summary(doc_id: int):
         }
     except Exception as e:
         return {"code": 500, "msg": f"AI摘要失败：{str(e)}"}
+if __name__ == "__main__":
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",  # 允许局域网访问
+        port=8000,      # 固定端口 8000
+        reload=True     # 开发模式：代码修改自动重启
+    )

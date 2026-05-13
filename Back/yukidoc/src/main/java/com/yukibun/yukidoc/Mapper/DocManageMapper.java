@@ -19,9 +19,9 @@ public interface DocManageMapper {
     List<Doc> getDocsByFatherId(int fatherId);
 
     @Insert("INSERT INTO docs " +
-            "(owner_id, connected_note_id, is_folder, father_id, doc_name, doc_url) " +
+            "(owner_id, doc_name, doc_url) " +
             "VALUES " +
-            "(#{doc.owner_id}, #{doc.connected_note_id}, #{doc.is_folder}, #{doc.father_id}, #{doc.doc_name}, #{doc.doc_url})")
+            "(#{doc.owner_id},  #{doc.doc_name}, #{doc.doc_url})")
     @Options(useGeneratedKeys = true, keyProperty = "doc.doc_id")  // 👈 关键！加这一行
     void createDoc(@Param("doc") Doc doc);
 

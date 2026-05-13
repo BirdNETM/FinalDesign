@@ -3,6 +3,7 @@ package com.yukibun.yukidoc.Controller;
 import com.yukibun.yukidoc.Entity.Doc;
 import com.yukibun.yukidoc.Entity.Tag;
 import com.yukibun.yukidoc.Service.DocManageService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -29,13 +30,18 @@ public class DocManageController {
         return docManageService.getDocsByFatherId(id);
     }
 
-    @PostMapping(value = "/createDoc",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Void> createDoc(
-            @RequestParam("file") MultipartFile file
+    @PostMapping(value = "/createDoc")
+    public ResponseEntity<?> createDoc(
+            @RequestParam("file") MultipartFile file,
+            HttpServletRequest request
     ) {
+
+        System.out.println("Content-Type: " + request.getContentType());
+
         docManageService.createDoc(file);
-        return ResponseEntity.ok().build();
+
+        //return ResponseEntity.ok().build();
+        return ResponseEntity.ok("录入成功");
     }
 
     @PostMapping("/createFolder/{FolderName}")
@@ -48,11 +54,10 @@ public class DocManageController {
         docManageService.deleteDoc(id);
     }
 
-    @GetMapping("/serachDoc/{query}")
-    public List<Doc> searchDoc(@PathVariable String query) {
-        List<Doc> answer = docManageService.searchDoc(query);
-        System.out.println("controller层返回：" + answer);
-        return answer;
+    // 路径改成不带中文的，把查询词用 ?query=xxx 传递
+    @GetMapping("/searchDoc")
+    public List<Doc> searchDoc(@RequestParam String query) {
+        return docManageService.searchDoc(query);
     }
 
     @GetMapping("/getAi_summary/{id}")
@@ -89,4 +94,10 @@ public class DocManageController {
 
         docManageService.saveNote(docId, note);
     }
+
+    @GetMapping("/reSetAI_summary/{doc_id}")
+    public String reSetAI_summary(@PathVariable Integer doc_id) {
+        return docManageService.reSetAI_summary(doc_id);
+    }
+
 }
